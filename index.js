@@ -1,11 +1,5 @@
 // post : 
 /*
-    Low : configured in settings how much xp
-    medium : configured in settings how much xp
-    high : configured in settings how much xp
-
-    Random : with from -> to will give xp between those numbers
-
     setInStone : an exact number of xp
 */
 
@@ -30,27 +24,34 @@ var config = {
   high: {
     low: 30,
     high: 100
+  },
+  text: {
+    low: 5,
+    high: 1000
   }
 }
 
-app.get('/api/low', (req, res) => {
-  fixedXpOutput("low",req,res);
-})
-app.get('/api/medium', (req, res) => {
-  fixedXpOutput("medium",req,res);
-})
-app.get('/api/high', (req, res) => {
-  fixedXpOutput("high",req,res);
-})
+let configKeys = Object.keys(config);
+
+for (let i = 0; i < configKeys.length; i++) {
+  const configKey = configKeys[i];
+  app.get(`/api/${configKey}`, (req, res) => {
+    fixedXpOutput(configKey,req,res);
+  })
+  app.post(`/api/${configKey}`, (req, res) => {
+    fixedXpOutput(configKey,req,res);
+  })
+}
+
 app.get('/api/between/:low-:high', (req, res) => {
   betweenInputPoints(req,res);
 })
 
 app.post('/api/between/:low-:high', (req, res) => {
+  console.log(req.headers["x-github-event"])
   betweenInputPoints(req,res);
 })
 
-console.log(xp.randomXp(6, 10));
 http.listen(port, () => console.log('listening on port ' + port));
 
 function fixedXpOutput(profile,req,res){
