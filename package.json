@@ -2,9 +2,10 @@
   "name": "techdevils.xpengine",
   "version": "1.0.0",
   "description": "generate xp from incoming web hooks or calls",
-  "main": "index.js",
+  "main": "XPEngineAPI.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
