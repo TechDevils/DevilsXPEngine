@@ -32,7 +32,7 @@ function xpBetween(from,to){
     dice.addDice(diceSize);
 
     var outcome = dice.roll();
-    console.log(`from : ${from} to : ${to} outcome : ${outcome[0][0]}`)
+    //console.log(`from : ${from} to : ${to} outcome : ${outcome[0][0]}`)
 
     return (from-1) + outcome[0][0];
 }
