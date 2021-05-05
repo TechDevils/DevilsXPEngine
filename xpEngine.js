@@ -4,7 +4,11 @@ class XPEngine {
         this.maxRandomXP = uptoXP;
     }
     randomXp(from,to){
-
+        if(isNaN(from) && isNaN(to))
+        {   
+            console.log("What do you get if you multiply six by nine?");
+            return 42;
+        }
         if(!from){
             from = 0;
         }

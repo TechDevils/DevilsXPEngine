@@ -5,14 +5,25 @@
 
 // Quest ?! im already on a quest. A quest to get my swamp bac
 let XPEngine = require("./xpEngine");
+let {validateHmac} = require("./hmacCheck.js");
 let express = require("express");
+var bodyParser = require('body-parser');
+var jsonParser = bodyParser.json()
 let path = require("path");
+
+let endpointTypes = {
+  "betweenInputPoints" : "betweenInputPoints",
+  "fixedXpOutput" : "fixedXpOutput"
+}
 
 class XPEngineAPI {
   constructor(expressApp, config) {
     this.app = expressApp;
     this.config = {
       baseUrl: "api",
+      key : config.key,
+      callbackFunc : config.callbackFunc,
+      validateHash : true,
       profiles: {
         low: {
           low: 1,
@@ -44,20 +55,19 @@ class XPEngineAPI {
       let configSection = this.config["profiles"][configKey]
       let urlPath = path.join(this.config["baseUrl"],configKey)
       this.app.get(urlPath, (req, res) => {
-        fixedXpOutput(xp, configSection, req, res);
+        setupHandelEndpoint(endpointTypes.fixedXpOutput, configSection, xp, req, res,this.config);
       })
       this.app.post(urlPath, (req, res) => {
-        fixedXpOutput(xp, configSection, req, res);
+        setupHandelEndpoint(endpointTypes.fixedXpOutput, configSection, xp, req, res,this.config);
       })
     }
 
     this.app.get('/api/between/:low-:high', (req, res) => {
-      betweenInputPoints(xp, req, res);
+      setupHandelEndpoint(endpointTypes.betweenInputPoints, null, xp, req, res,this.config);
     })
 
-    this.app.post('/api/between/:low-:high', (req, res) => {
-      console.log(req.headers["x-github-event"])
-      betweenInputPoints(req, res);
+    this.app.post('/api/between/:low-:high', jsonParser, (req, res) => {
+      setupHandelEndpoint(endpointTypes.betweenInputPoints, null, xp, req, res,this.config);
     })
   }
 
@@ -68,20 +78,42 @@ class XPEngineAPI {
 
 module.exports = XPEngineAPI;
 
+function setupHandelEndpoint(endpointType, profile, xp, req, res, config){
 
-function fixedXpOutput(xp, profile, req, res) {
-  let {
-    low,
-    high
-  } = profile;
-  let output = xp.randomXp(low, high);
-  res.send(`xp ${output}`)
-}
+  let {profiles, key, callbackFunc} = config;
 
-function betweenInputPoints(xp, req, res) {
-  let lowInput = parseInt(req.params.low);
-  let highInput = parseInt(req.params.high);
-  //console.log(`lowInput : ${lowInput} ${typeof(lowInput)}`)
-  let output = xp.randomXp(lowInput, highInput);
-  res.send(`xp ${output} low : ${lowInput} high : ${highInput}`)
+  let hookHash = req.headers["x-hub-signature-256"];
+  console.log(req.headers["x-github-event"]);
+
+  let payload = req.body;
+  let validPayload = validateHmac(key,JSON.stringify(payload),hookHash);
+  if(!validPayload && hookHash){
+    console.log("Invalid hash");
+    res.status(204);
+    res.send("");
+    return;
+  }
+
+  let output = 0;
+
+  switch(endpointType){
+    case "betweenInputPoints":
+        let lowInput = parseInt(req.params.low);
+        let highInput = parseInt(req.params.high);
+        output = xp.randomXp(lowInput, highInput);
+      break;
+    case "fixedXpOutput":
+        let {
+          low,
+          high
+        } = profiles[profile];
+        output = xp.randomXp(low, high);
+      break;
+  }
+
+  res.send(`xp ${output}`);
+
+  if(callbackFunc){
+    callbackFunc(output);
+  }
 }
