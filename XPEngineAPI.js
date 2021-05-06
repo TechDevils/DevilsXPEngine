@@ -6,22 +6,29 @@
 // Quest ?! im already on a quest. A quest to get my swamp bac
 let XPEngine = require("./xpEngine");
 let {validateHmac} = require("./hmacCheck.js");
-let express = require("express");
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json()
 let path = require("path");
 
 let endpointTypes = {
-  "betweenInputPoints" : "betweenInputPoints",
-  "fixedXpOutput" : "fixedXpOutput"
+  "betweenInputPoints" : "ghBetweenInputPoints",
+  "fixedXpOutput" : "ghFixedXpOutput"
 }
-
+//ToDo : add the ability to add bonus xp for actions/events
 class XPEngineAPI {
   constructor(expressApp, config) {
     this.app = expressApp;
     this.config = {
       baseUrl: "api",
       key : config.key,
+      sites :{
+        "github" : {
+          validateWebHooks : true,
+          key : "",
+          baseurl : "gh",
+          endpointHandler : setupHandelGithubEndpoint
+        }
+      },
       callbackFunc : config.callbackFunc,
       validateHash : true,
       profiles: {
@@ -45,30 +52,65 @@ class XPEngineAPI {
     }
   }
 
-  setup() {
+  changeSiteConfig(siteName, {key,validate,baseurl}){
+    let section = this.config["sites"][siteName];
+
+    if(section){
+      if(key){
+        section.key = key;
+      }
+      if(validate != undefined){
+        section.validateWebHooks = validate;
+      }
+      if(baseurl){
+        section.baseurl = baseurl;
+      }
+    }
+  }
+
+  setupSiteEndpoints(name) {
+    console.log(`processing endpoints for ${name}`)
     let xp = new XPEngine();
 
     let configKeys = Object.keys(this.config["profiles"]);
 
+    let baseUrl = this.config["baseUrl"];
+    let sitePartUrl = this.config["sites"][name].baseurl;
+
+    let siteEndpointHandler = this.config["sites"][name].endpointHandler
+
+    let availableEndpoints = [];
+
     for (let i = 0; i < configKeys.length; i++) {
       const configKey = configKeys[i];
       let configSection = this.config["profiles"][configKey]
-      let urlPath = path.join(this.config["baseUrl"],configKey)
+      let urlPath = `/${baseUrl}/${sitePartUrl}/${configKey}`;
+      availableEndpoints.push(urlPath);
       this.app.get(urlPath, (req, res) => {
-        setupHandelEndpoint(endpointTypes.fixedXpOutput, configSection, xp, req, res,this.config);
+        siteEndpointHandler(endpointTypes.fixedXpOutput, configSection, xp, req, res,this.config, false);
       })
       this.app.post(urlPath, (req, res) => {
-        setupHandelEndpoint(endpointTypes.fixedXpOutput, configSection, xp, req, res,this.config);
+        siteEndpointHandler(endpointTypes.fixedXpOutput, configSection, xp, req, res,this.config);
       })
     }
 
-    this.app.get('/api/between/:low-:high', (req, res) => {
-      setupHandelEndpoint(endpointTypes.betweenInputPoints, null, xp, req, res,this.config);
+    var betweenEndpointUrl = `/${baseUrl}/${sitePartUrl}/between/:low-:high`;
+
+    availableEndpoints.push(betweenEndpointUrl);
+
+    this.app.get(betweenEndpointUrl, (req, res) => {
+      siteEndpointHandler(endpointTypes.betweenInputPoints, null, xp, req, res,this.config, false);
     })
 
-    this.app.post('/api/between/:low-:high', jsonParser, (req, res) => {
-      setupHandelEndpoint(endpointTypes.betweenInputPoints, null, xp, req, res,this.config);
+    this.app.post(betweenEndpointUrl, jsonParser, (req, res) => {
+      siteEndpointHandler(endpointTypes.betweenInputPoints, null, xp, req, res,this.config);
     })
+    console.log(`completed endpoints for ${name}`);
+    console.log(`${availableEndpoints.length} endpoints available`);
+    for (let i = 0; i < availableEndpoints.length; i++) {
+      const endpoint = availableEndpoints[i];
+      console.log(`endpoint : ${endpoint}`);
+    }
   }
 
   currentConfig() {
@@ -78,40 +120,51 @@ class XPEngineAPI {
 
 module.exports = XPEngineAPI;
 
-function setupHandelEndpoint(endpointType, profile, xp, req, res, config){
+function setupHandelGithubEndpoint(endpointType, profile, xp, req, res, config, processRequest){
 
-  let {profiles, key, callbackFunc} = config;
+  let {key, callbackFunc} = config;
 
-  let hookHash = req.headers["x-hub-signature-256"];
-  console.log(req.headers["x-github-event"]);
-
+  let githubEvent = req.headers["x-github-event"];
   let payload = req.body;
-  let validPayload = validateHmac(key,JSON.stringify(payload),hookHash);
-  if(!validPayload && hookHash){
-    console.log("Invalid hash");
-    res.status(204);
-    res.send("");
-    return;
+
+  if(processRequest && config["sites"]["githug"].validateWebHooks){
+    let hookHash = req.headers["x-hub-signature-256"];
+    console.log(githubEvent);
+
+    let validPayload = validateHmac(key,JSON.stringify(payload),hookHash);
+    if(!validPayload && hookHash){
+      console.log("Invalid hash");
+      res.status(204);
+      res.send("");
+      return;
+    }
+  }
+  let output = {
+    user : "",
+    action : githubEvent,
+    xp : 0
+  };
+
+  if(payload){
+    output.user = payload.sender.login;
   }
 
-  let output = 0;
-
   switch(endpointType){
-    case "betweenInputPoints":
+    case endpointTypes.betweenInputPoints:
         let lowInput = parseInt(req.params.low);
         let highInput = parseInt(req.params.high);
-        output = xp.randomXp(lowInput, highInput);
+        output.xp = xp.randomXp(lowInput, highInput);
       break;
-    case "fixedXpOutput":
+    case endpointTypes.fixedXpOutput:
         let {
           low,
           high
-        } = profiles[profile];
-        output = xp.randomXp(low, high);
+        } = profile;
+        output.xp = xp.randomXp(low, high);
       break;
   }
 
-  res.send(`xp ${output}`);
+  res.send(`xp ${output.xp}`);
 
   if(callbackFunc){
     callbackFunc(output);

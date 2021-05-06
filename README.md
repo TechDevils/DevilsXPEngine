@@ -1,3 +1,12 @@
+# DevilsXPEngine
+
+Taking in webhooks and spiting out XP :tada:
+
+## The Setup
+
+
+
+```
 let xpApi = require("./XPEngineAPI")
 let express = require("express");
 let app = express();
@@ -15,3 +24,9 @@ http.listen(port, () => console.log('listening on port ' + port));
 function logOutput(data){
     console.log(`XP : ${data}`);
 }
+
+```
+
+## Github webhooks
+
+
