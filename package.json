@@ -11,6 +11,10 @@
     "type": "git",
     "url": "git+https://github.com/TechDevils/DevilsXPEngine.git"
   },
+  "bugs": {
+    "url": "https://github.com/TechDevils/DevilsXPEngine/issues"
+  },
+  "homepage": "https://github.com/TechDevils/DevilsXPEngine#readme",
   "keywords": [
     "xp",
     "webhooks",

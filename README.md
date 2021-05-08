@@ -6,6 +6,9 @@ Taking in webhooks and spiting out XP :tada:
 
 The current setup is just for GitHub hooks. see the repo to see more milestones and there progress 
 
+## Like the code then maybe checkout
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/M4M31JOPH) 
+
 ## The Setup
 
 ```
