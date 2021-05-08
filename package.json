@@ -1,6 +1,6 @@
 {
-  "name": "techdevils.xpengine",
-  "version": "1.0.0",
+  "name": "devilsxpengine",
+  "version": "1.0.1",
   "description": "generate xp from incoming web hooks or calls",
   "main": "XPEngineAPI.js",
   "scripts": {
