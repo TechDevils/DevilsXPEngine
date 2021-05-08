@@ -43,10 +43,6 @@ class XPEngineAPI {
         high: {
           low: 30,
           high: 100
-        },
-        text: {
-          low: 5,
-          high: 1000
         }
       }
     }
@@ -65,6 +61,19 @@ class XPEngineAPI {
       if(baseurl){
         section.baseurl = baseurl;
       }
+    }
+  }
+
+  addOrUpdateProfile({name,low,high}){
+    this.config["profiles"][name] = {
+      low: low,
+      high: high
+    }
+  }
+
+  removeProfile(name){
+    if(this.config["profiles"][name]){
+      delete this.config["profiles"][name]
     }
   }
 

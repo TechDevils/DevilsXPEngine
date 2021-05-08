@@ -2,9 +2,11 @@
 
 Taking in webhooks and spiting out XP :tada:
 
+## Info
+
+The current setup is just for GitHub hooks. see the repo to see more milestones and there progress 
+
 ## The Setup
-
-
 
 ```
 let xpApi = require("./XPEngineAPI")
@@ -27,6 +29,28 @@ function logOutput(data){
 
 ```
 
+> data object result
+```
+{
+    user : "MyGhUserName",
+    action : "push",
+    xp : 23
+  }
+```
+
+## Generic settings and info
+
+
+
+
 ## Github webhooks
 
+The specifics for GitHub :
 
+`xpAPIs.changeSiteConfig("github", {key : "somekey"});`
+
+the `Key` is your secret webhook key and is used to `validateHmac`
+
+you can also change the url part for the endpoints created
+
+`xpAPIs.changeSiteConfig("github", {baseurl : "somecustomurlpart"});`

@@ -4,10 +4,19 @@ class XPEngine {
         this.maxRandomXP = uptoXP;
     }
     randomXp(from,to){
+        if(from == undefined && to == undefined)
+        { 
+            return 0;
+        }
         if(isNaN(from) && isNaN(to))
         {   
             console.log("What do you get if you multiply six by nine?");
             return 42;
+        }
+
+        if(isNaN(from) || isNaN(to))
+        {
+            return isNaN(from) ? to : from;
         }
         if(!from){
             from = 0;
@@ -36,7 +45,6 @@ function xpBetween(from,to){
     dice.addDice(diceSize);
 
     var outcome = dice.roll();
-    //console.log(`from : ${from} to : ${to} outcome : ${outcome[0][0]}`)
 
     return (from-1) + outcome[0][0];
 }

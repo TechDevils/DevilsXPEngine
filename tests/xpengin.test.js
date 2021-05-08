@@ -76,8 +76,9 @@ test("Check random xp random when low and high is text NaN", () => {
 test("Check random xp random when low and high negative number", () => {
     var xp = new XPEngine();
 
-    var [low,high] = ["Stairs","Masters"];
+    var [low,high] = [-30,-10];
 
     var result = xp.randomXp(low,high);
-    expect(result).toBe(42);
+    expect(result).toBeGreaterThanOrEqual(low);
+    expect(result).toBeLessThanOrEqual(high);
 })

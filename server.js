@@ -7,6 +7,7 @@ const port = process.env.PORT || 3006;
 var xpAPIs = new xpApi(app,{callbackFunc : logOutput});
 
 xpAPIs.changeSiteConfig("github", {key : "somekey"});
+xpAPIs.addOrUpdateProfile({"name" : "test", "low" : 11, "high":21});
 
 xpAPIs.setupSiteEndpoints("github");
 
