@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "t"
+    "url": "git+https://github.com/TechDevils/DevilsXPEngine.git"
   },
   "keywords": [
     "xp",
