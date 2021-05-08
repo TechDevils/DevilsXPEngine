@@ -82,3 +82,13 @@ test("Check random xp random when low and high negative number", () => {
     expect(result).toBeGreaterThanOrEqual(low);
     expect(result).toBeLessThanOrEqual(high);
 })
+
+test("Check random xp random when low and high negative number and high is positive", () => {
+    var xp = new XPEngine();
+
+    var [low,high] = [-3,3];
+
+    var result = xp.randomXp(low,high);
+    expect(result).toBeGreaterThanOrEqual(low);
+    expect(result).toBeLessThanOrEqual(high);
+})
