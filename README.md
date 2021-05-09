@@ -12,7 +12,7 @@ The current setup is just for GitHub hooks. see the repo to see more milestones 
 ## The Setup
 
 ```
-let xpApi = require("./XPEngineAPI")
+let xpApi = require("devilsxpengine")
 let express = require("express");
 let app = express();
 const http = require('http').Server(app);
